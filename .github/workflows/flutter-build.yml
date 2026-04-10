@@ -1,0 +1,159 @@
+name: Flutter Build APK & IPA
+
+# Trigger: Chạy khi push code lên branch main hoặc tạo tag
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # Cho phép chạy thủ công từ GitHub UI
+
+jobs:
+  # ============================================================
+  # JOB 1: BUILD ANDROID APK
+  # ============================================================
+  build-android:
+    name: 🤖 Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Checkout code
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Setup Java (cần cho Android build)
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      # 3. Setup Flutter
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'  # Hoặc version bạn đang dùng
+          channel: 'stable'
+      
+      # 4. Get dependencies
+      - name: 📦 Get Flutter dependencies
+        run: flutter pub get
+      
+      # 5. Build APK
+      - name: 🔨 Build Android APK
+        run: flutter build apk --release
+      
+      # 6. Upload APK artifact
+      - name: 📤 Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+      
+      # 7. Create Release (nếu có tag)
+      - name: 🚀 Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # JOB 2: BUILD iOS IPA
+  # ============================================================
+  build-ios:
+    name: 🍎 Build iOS IPA
+    runs-on: macos-latest
+    
+    steps:
+      # 1. Checkout code
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Setup Flutter
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      # 3. Get dependencies
+      - name: 📦 Get Flutter dependencies
+        run: flutter pub get
+      
+      # 4. Build iOS (without signing - for testing)
+      - name: 🔨 Build iOS (No Codesign)
+        run: |
+          flutter build ios --release --no-codesign
+      
+      # 5. Create IPA manually
+      - name: 📦 Create IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r app-release.ipa Payload
+          rm -rf Payload
+      
+      # 6. Upload IPA artifact
+      - name: 📤 Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: app-release.ipa
+      
+      # 7. Create Release (nếu có tag)
+      - name: 🚀 Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app-release.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # JOB 3: BUILD ANDROID APP BUNDLE (AAB) - Cho Google Play
+  # ============================================================
+  build-android-bundle:
+    name: 📦 Build Android App Bundle (AAB)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: 📦 Get Flutter dependencies
+        run: flutter pub get
+      
+      - name: 🔨 Build Android App Bundle
+        run: flutter build appbundle --release
+      
+      - name: 📤 Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+      
+      - name: 🚀 Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
