@@ -3,8 +3,26 @@ import 'home_dashboard.dart';
 import 'living_room_light.dart';
 import 'front_door_cam.dart';
 import 'add_device.dart';
+// ⭐ THÊM MỚI - Import MQTT và Render API services
+import 'mqtt_service.dart';
+import 'render_api_service.dart';
 
-void main() {
+void main() async {
+  // ⭐ THÊM MỚI - Khởi tạo Flutter binding
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // ⭐ THÊM MỚI - Kết nối MQTT (HiveMQ)
+  print('🔌 Đang kết nối MQTT...');
+  final mqttService = MQTTService();
+  final mqttConnected = await mqttService.connect();
+  print(mqttConnected ? '✅ MQTT connected' : '❌ MQTT connection failed');
+  
+  // ⭐ THÊM MỚI - Kiểm tra Render backend
+  print('🏥 Đang kiểm tra Render backend...');
+  final renderAPI = RenderAPIService();
+  final isHealthy = await renderAPI.checkHealth();
+  print(isHealthy ? '✅ Render backend online' : '⚠️ Render backend offline');
+  
   runApp(const MyApp());
 }
 
@@ -33,7 +51,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const HomeDashboard(),
     );
@@ -107,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
           // action in the IDE, or press "p" in the console), to see the
           // wireframe for each widget.
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('You have pushed the button this many times:'),
             Text(
