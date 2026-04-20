@@ -31,17 +31,26 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  flutter_mjpeg: ^2.0.4
-  sqflite: ^2.3.2
-  http: ^0.13.6
-  flutter_blue_plus: ^1.20.0  # BLE plugin
-  mqtt_client: ^9.8.0
-  wifi_scan: ^0.3.1  # ⭐ THÊM MỚI - Scan WiFi từ điện thoại  # ⭐ THÊM MỚI - MQTT client cho HiveMQ
-  image_picker: ^0.8.9  # For face enrollment
-  permission_handler: ^10.4.5  # For camera/bluetooth permissions
+  # Core UI
+  cupertino_icons: ^1.0.2
+  
+  # Database
+  sqflite: ^2.2.8
+  
+  # Network
+  http: ^0.13.5
+  
+  # BLE & WiFi
+  flutter_blue_plus: ^1.12.13
+  wifi_scan: ^0.2.3
+  
+  # MQTT
+  mqtt_client: ^9.7.2
+  
+  # Media & Permissions  
+  flutter_mjpeg: ^1.3.0
+  image_picker: ^0.8.7
+  permission_handler: ^10.2.0
 
 dev_dependencies:
   flutter_test:
